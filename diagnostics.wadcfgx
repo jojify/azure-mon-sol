@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PublicConfig xmlns="http://schemas.microsoft.com/ServiceHosting/2010/10/DiagnosticsConfiguration">
+  <WadCfg>
+    <DiagnosticMonitorConfiguration overallQuotaInMB="4096">
+      <DiagnosticInfrastructureLogs scheduledTransferLogLevelFilter="Error"/>
+      <PerformanceCounters scheduledTransferPeriod="PT1M">
+        <PerformanceCounterConfiguration counterSpecifier="\Processor(_Total)\% Processor Time" sampleRate="PT15S" />
+        <PerformanceCounterConfiguration counterSpecifier="\Memory\Available Bytes" sampleRate="PT15S" />
+      </PerformanceCounters>
+      <WindowsEventLog scheduledTransferPeriod="PT1M">
+        <DataSource name="Application!*[System[(Level=1 or Level=2 or Level=3)]]" />
+        <DataSource name="Security!*[System[(Level=1 or Level=2)]]" />
+        <DataSource name="System!*[System[(Level=1 or Level=2 or Level=3)]]" />
+      </WindowsEventLog>
+    </DiagnosticMonitorConfiguration>
+  </WadCfg>
+</PublicConfig>

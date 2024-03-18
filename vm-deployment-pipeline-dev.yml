@@ -1,0 +1,189 @@
+# trigger:
+#   - feature/pz-az  
+
+variables:
+  - name: resourceGroupName
+    value: 'rg-MonitoringSolution-Dev'  
+  - name: location
+    value: '"Southeast Asia"'   
+  - name: vnetName
+    value: 'vnet-mon-dev-01'  
+  - name: vnetAddressPrefix
+    value: '10.0.0.0/16'  
+  - name: subnetName
+    value: 'snet-mon-dev-01'  
+  - name: subnetAddressPrefix
+    value: '10.0.0.0/24'  
+  - name: VMName
+    value: 'vm-mon-dev-01'    
+  - name: logAnalyticsWorkspaceName
+    value: 'law-vmmon-dev-01'
+  - name: azureMonitorName
+    value: 'am-vmmon-dev-01'
+  - name: storageAccountName
+    value: 'stgvmmondev01'
+
+pool:
+  name: 'MyMac'
+
+
+stages:
+- stage: CreateNetworkResources
+  # condition: or(eq(variables['stageToRun'], 'All'), eq(variables['stageToRun'], 'CreateNetworkResources'))
+  jobs:
+  - job: CreateNetworkResources
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'    
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment' # Service connection based on reource group
+        ScriptPath: 'create-network-resources.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -Location $(location) -VNetName $(vnetName) -SubnetName $(subnetName)'
+        azurePowerShellVersion: 'LatestVersion'
+
+
+- stage: CreateWindowsVM
+  dependsOn: CreateNetworkResources
+  jobs:
+  - job: DeployWindowsVM
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment' 
+        ScriptPath: 'create-vm.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -VMName $(vmName) -Location $(location) -AdminUsername "jojify" -AdminPassword "J@ji1985J@hn" -VNetName $(vnetName) -SubnetName $(subnetName)'
+        azurePowerShellVersion: 'LatestVersion'   
+        
+
+- stage: CreateStorageAccount
+  dependsOn: CreateWindowsVM
+  jobs:
+  - job: CreateStorageAccount
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'create-storage-account.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -StorageAccountName $(storageAccountName) -Location $(location)'
+        azurePowerShellVersion: 'LatestVersion'
+
+
+- stage: CreateMonitoringResources
+  dependsOn: CreateStorageAccount
+  jobs:
+  - job: CreateMonitoringResources
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'create-monitoring-resources.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -Location $(location) -WorkspaceName $(logAnalyticsWorkspaceName)'
+        azurePowerShellVersion: 'LatestVersion'
+
+
+- stage: InstallAzureMonitorAgent
+  dependsOn: CreateMonitoringResources
+  jobs:
+  - job: InstallAzureMonitorAgent
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'install-azure-monitor-agent.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -VMName $(vmName) -WorkspaceName $(logAnalyticsWorkspaceName)'
+        azurePowerShellVersion: 'LatestVersion'
+
+
+- stage: EnableDiagnosticsExtension
+  dependsOn: 
+    - InstallAzureMonitorAgent
+  jobs:
+  - job: EnableDiagnosticsExtension
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'enable-diagnostics-extension.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -VMName $(vmName) -StorageAccountName $(storageAccountName) -WorkspaceName $(logAnalyticsWorkspaceName)'
+        azurePowerShellVersion: 'LatestVersion'        
+
+# - stage: RetrieveVMMetrics
+#   dependsOn: EnableDiagnosticsExtension
+#   jobs:
+#   - job: RetrieveVMMetrics
+#     steps:
+#     - powershell: |
+#         $PSVersionTable.PSVersion
+#       displayName: 'Check PowerShell Version'
+#     - task: AzurePowerShell@5
+#       inputs:
+#         azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+#         ScriptPath: 'retrieve-vm-metrics.ps1'
+#         ScriptArguments: '-WorkspaceName $(logAnalyticsWorkspaceName) -ResourceGroupName $(resourceGroupName) -VMName $(vmName)'
+#         azurePowerShellVersion: 'LatestVersion'
+
+- stage: DeleteStorageAccount
+  dependsOn: EnableDiagnosticsExtension
+  condition: always()
+  jobs:
+  - job: DeleteStorageAccount
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'delete-storage-account.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -StorageAccountName $(storageAccountName)'
+        azurePowerShellVersion: 'LatestVersion'
+
+
+- stage: DeleteVMResources
+  dependsOn: DeleteStorageAccount
+  jobs:
+  - job: DeleteVMAndIPAddress
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'delete-vm.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -VMName $(vmName)'
+        azurePowerShellVersion: 'LatestVersion'
+
+- stage: DeleteMonitoringResources
+  dependsOn: DeleteVMResources
+  condition: always()
+  jobs:
+  - job: DeleteMonitoringResources
+    steps:
+    - powershell: |
+        $PSVersionTable.PSVersion
+      displayName: 'Check PowerShell Version'
+    - task: AzurePowerShell@5
+      inputs:
+        azureSubscription: 'sp-VMMonitoring-Dev-Deployment'
+        ScriptPath: 'delete-monitoring-resources.ps1'
+        ScriptArguments: '-ResourceGroupName $(resourceGroupName) -WorkspaceName $(logAnalyticsWorkspaceName)'
+        azurePowerShellVersion: 'LatestVersion'        
+
