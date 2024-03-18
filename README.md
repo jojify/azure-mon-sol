@@ -52,7 +52,7 @@ The solution architecture consists of the following components:
 - Use a pipeline stage to execute the PowerShell script and retrieve the VM metrics.
 
 ## Using a Mac Machine as the Agent
-![Alt text](Azure Runner.png)
+![Azure Runner](AzureRunner.png)
 
 I am using a Mac machine as the agent and utilizing the Azure runner script to execute the Azure DevOps pipeline. This Azure runner script is a cross-platform tool that enables me to run the pipeline across different operating systems, including macOS. Before using the Azure runner script on my Mac machine, I installed PowerShell Core as a prerequisite, which is cross-platform. After these preparations, I was able to execute the Azure runner script to successfully run the pipeline and deploy the Azure VM Monitoring Solution.
 
