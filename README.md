@@ -16,7 +16,7 @@ The Azure VM Monitoring Solution allows you to collect and analyze important met
 Before getting started, ensure you have the following prerequisites:
 - An Azure subscription with sufficient permissions to create and manage resources
 - An Azure DevOps organization and project
-- Basic knowledge of Azure services and Azure DevOps pipelines
+- A machine for setting up Azure Agent runners.
 
 ## Architecture
 The solution architecture consists of the following components:
@@ -24,6 +24,10 @@ The solution architecture consists of the following components:
 - Log Analytics Workspace: A centralized repository for collecting and analyzing logs and metrics from the VMs.
 - Azure Monitor: A comprehensive monitoring service in Azure that helps you collect, analyze, and act on telemetry data from your Azure resources.
 - Azure DevOps: A cloud-based platform for managing your development lifecycle, including CI/CD pipelines.
+
+## DevOps Overview
+![Azure Runner](DevOPsOveriview.png)
+The pipeline is designed for the orchestration and management of various Azure resources, including virtual networks (Vnets), subnets, virtual machines (VMs), Log Analytics workspaces, and Azure Monitor among others. eginning with the creation of network resources such as Vnets and subnets, the pipeline progresses to deploy Windows VMs, establish storage accounts, and set up monitoring resources including Log Analytics workspaces and Azure Monitor configurations. Each stage of the pipeline builds upon the resources provisioned by the preceding stages, illustrating a clear and logical flow from network setup to monitoring. Stages are for installing monitoring agents, enabling diagnostic extensions, retrieving VM metrics, and ultimately, the cleanup of resources.
 
 ## Setup and Configuration
 ### Create Azure Resources
@@ -63,6 +67,3 @@ By following the steps outlined in this document, you can set up an Azure VM Mon
 Remember to regularly review and update your monitoring configuration to meet your evolving requirements and best practices.
 
 For more detailed information and code examples, please refer to the provided PowerShell scripts and Azure DevOps pipeline configurations.
-
-
-
