@@ -26,8 +26,11 @@ The solution architecture consists of the following components:
 - Azure DevOps: A cloud-based platform for managing your development lifecycle, including CI/CD pipelines.
 
 ## DevOps Overview
-![Azure Runner](DevOPsOveriview.png)
+![DevOps Overview](DevOPsOveriview.png)
 The pipeline is designed for the orchestration and management of various Azure resources, including virtual networks (Vnets), subnets, virtual machines (VMs), Log Analytics workspaces, and Azure Monitor among others. eginning with the creation of network resources such as Vnets and subnets, the pipeline progresses to deploy Windows VMs, establish storage accounts, and set up monitoring resources including Log Analytics workspaces and Azure Monitor configurations. Each stage of the pipeline builds upon the resources provisioned by the preceding stages, illustrating a clear and logical flow from network setup to monitoring. Stages are for installing monitoring agents, enabling diagnostic extensions, retrieving VM metrics, and ultimately, the cleanup of resources.
+
+A service connection to resource group is used to authenticate and manage azure resources from DevOps pipeline.
+![Service Connection](SerCon.png)
 
 ## Setup and Configuration
 ### Create Azure Resources
