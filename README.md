@@ -51,9 +51,18 @@ The solution architecture consists of the following components:
 - Process the API response and extract the relevant metrics for each VM.
 - Use a pipeline stage to execute the PowerShell script and retrieve the VM metrics.
 
+## Using a Mac Machine as the Agent
+![Alt text](Azure Runner.png)
+
+I am using a Mac machine as the agent and utilizing the Azure runner script to execute the Azure DevOps pipeline. This Azure runner script is a cross-platform tool that enables me to run the pipeline across different operating systems, including macOS. Before using the Azure runner script on my Mac machine, I installed PowerShell Core as a prerequisite, which is cross-platform. After these preparations, I was able to execute the Azure runner script to successfully run the pipeline and deploy the Azure VM Monitoring Solution.
+
+
 ## Conclusion
 By following the steps outlined in this document, you can set up an Azure VM Monitoring Solution that leverages Azure native resources and a CI/CD process with Azure DevOps. This solution enables you to collect and analyze important metrics and logs from your Azure VMs, helping you ensure their health and performance.
 
 Remember to regularly review and update your monitoring configuration to meet your evolving requirements and best practices.
 
 For more detailed information and code examples, please refer to the provided PowerShell scripts and Azure DevOps pipeline configurations.
+
+
+
